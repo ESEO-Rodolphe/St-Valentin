@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>St Valentin - Rodolphe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            margin: 0; padding: 0;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            font-family: 'Poppins', sans-serif;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            min-height: 100vh; overflow: hidden;
+            color: white; text-align: center;
+        }
+
+        h1 { cursor: pointer; user-select: none; transition: text-shadow 0.3s; }
+
+        .game-wrapper {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px; border-radius: 25px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+        }
+
+        .grid-container {
+            display: grid;
+            /* Taille augmentée à 110px */
+            grid-template-columns: repeat(3, 110px);
+            grid-template-rows: repeat(3, 110px);
+            gap: 12px;
+        }
+
+        .card {
+            position: relative; 
+            width: 110px; 
+            height: 110px;
+            border-radius: 12px; 
+            overflow: hidden;
+            background: #fff; 
+            display: flex;
+            align-items: center; 
+            justify-content: center;
+        }
+
+        .card img { 
+            /* Taille de l'icône augmentée à 85% */
+            width: 85%; 
+            height: 85%; 
+            object-fit: contain; 
+        }
+
+        canvas {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%; cursor: pointer;
+            touch-action: none; z-index: 2;
+        }
+
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); backdrop-filter: blur(8px);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.4s;
+        }
+
+        .modal.active { opacity: 1; pointer-events: all; }
+
+        .modal-content {
+            background: white; border-radius: 25px;
+            width: 90%; max-width: 350px; height: 350px;
+            position: relative; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        #opening-video {
+            width: 100%; height: 100%;
+            object-fit: contain; background: #000;
+        }
+
+        .prize-overlay-ext {
+            margin-bottom: 20px; opacity: 0; transform: translateY(-20px);
+            transition: all 0.5s ease;
+        }
+        .prize-overlay-ext.show { opacity: 1; transform: translateY(0); }
+
+        .prize-text-ext {
+            background: white; color: #333; padding: 15px 25px; border-radius: 20px;
+        }
+
+        #replay-btn-ext {
+            margin-top: 30px; opacity: 0; transform: scale(0.5);
+            transition: all 0.5s ease;
+        }
+        #replay-btn-ext.show { opacity: 1; transform: scale(1); }
+
+        .btn {
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            color: white; border: none; padding: 15px 40px;
+            border-radius: 50px; font-weight: bold; cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .clickable-box { width: 140px; cursor: pointer; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+        .confetti { position: fixed; width: 10px; height: 10px; pointer-events: none; z-index: 3000; }
+    </style>
+</head>
+<body>
+
+    <h1 id="game-title">Gagne ta Saint Valentin !</h1>
+    <p class="subtitle">Trouve 3 fois une chose pour la gagner !</p>
+
+    <div class="game-wrapper">
+        <div class="grid-container" id="grid"></div>
+    </div>
+
+    <div class="modal" id="winModal">
+        <div class="prize-overlay-ext" id="prize-overlay">
+            <div class="prize-text-ext" id="prize-text-container">
+                <h3 id="display-prize-title" style="margin:0; color:#e67e22;">FÉLICITATIONS ! 🍌</h3>
+                <p id="display-prize-desc" style="margin:5px 0 0 0;">Tu gagnes un régime de bananes !</p>
+            </div>
+        </div>
+
+        <div class="modal-content">
+            <div id="step-1-click" style="color:#333; padding: 20px;">
+                <h2 style="margin-top:0;">Bravo !</h2>
+                <p>Clique sur la boîte pour l'ouvrir</p>
+                <img src="images/boite.png" class="clickable-box" id="click-trigger">
+            </div>
+            <div id="step-2-animation" style="display:none; width:100%; height:100%;">
+                <video id="opening-video" playsinline></video>
+            </div>
+        </div>
+
+        <div id="replay-btn-ext">
+            <button class="btn" onclick="location.reload()">Rejouer</button>
+        </div>
+    </div>
+
+    <script>
+        const items = [
+            { type: 'win', img: 'images/boite.png' },
+            { type: 'win', img: 'images/boite.png' },
+            { type: 'win', img: 'images/boite.png' },
+            { type: 'lose', img: 'images/culotte.png' },
+            { type: 'lose', img: 'images/culotte.png' },
+            { type: 'lose', img: 'images/fleur.png' },
+            { type: 'lose', img: 'images/fleur.png' },
+            { type: 'lose', img: 'images/chocolat.png' },
+            { type: 'lose', img: 'images/chocolat.png' }
+        ];
+
+        let winnersFound = 0;
+        const grid = document.getElementById('grid');
+        let fleurMode = false;
+        let titleClicks = 0;
+
+        function init() {
+            document.getElementById('game-title').addEventListener('click', () => {
+                titleClicks++;
+                if (titleClicks === 3) {
+                    fleurMode = true;
+                    document.getElementById('game-title').style.textShadow = "0 0 10px rgba(255,255,255,0.8)";
+                }
+                setTimeout(() => { titleClicks = 0; }, 1000);
+            });
+
+            const shuffled = items.sort(() => Math.random() - 0.5);
+            shuffled.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                
+                const img = document.createElement('img');
+                img.src = item.img;
+                card.appendChild(img);
+
+                const canvas = document.createElement('canvas');
+                canvas.width = 110; canvas.height = 110;
+                card.appendChild(canvas);
+                setupCanvas(canvas, item.type);
+                
+                grid.appendChild(card);
+            });
+        }
+
+        function createConfetti() {
+            const colors = ['#ff416c', '#ff4b2b', '#fdbb2d', '#fff'];
+            for (let i = 0; i < 60; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = '-10px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                document.body.appendChild(confetti);
+                
+                const animation = confetti.animate([
+                    { transform: 'translateY(0) rotate(0)', opacity: 1 },
+                    { transform: `translateY(100vh) rotate(${Math.random() * 360}deg)`, opacity: 0 }
+                ], { 
+                    duration: 2000 + Math.random() * 2000, 
+                    easing: 'ease-out' 
+                });
+                
+                animation.onfinish = () => confetti.remove();
+            }
+        }
+
+        function setupCanvas(canvas, type) {
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#bdc3c7';
+            ctx.fillRect(0, 0, 110, 110);
+            
+            ctx.font = "bold 35px Poppins";
+            ctx.fillStyle = "#fff";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("?", 55, 55);
+
+            let isRevealed = false;
+            let isDrawing = false;
+
+            function getScratchedPercentage() {
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const pixels = imageData.data;
+                let transparentPixels = 0;
+                for (let i = 3; i < pixels.length; i += 4) {
+                    if (pixels[i] === 0) transparentPixels++;
+                }
+                return (transparentPixels / (canvas.width * canvas.height)) * 100;
+            }
+
+            function scratch(e) {
+                if (isRevealed) return;
+                const rect = canvas.getBoundingClientRect();
+                const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+                const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.beginPath();
+                ctx.arc(x, y, 18, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (getScratchedPercentage() >= 70) {
+                    isRevealed = true;
+                    canvas.style.transition = "opacity 0.6s ease-out, transform 0.6s ease-out";
+                    canvas.style.opacity = "0";
+                    canvas.style.transform = "scale(1.1)";
+                    
+                    setTimeout(() => {
+                        canvas.remove();
+                        if (type === 'win') {
+                            winnersFound++;
+                            if (navigator.vibrate) navigator.vibrate(50);
+                            if (winnersFound === 3) {
+                                setTimeout(() => {
+                                    document.getElementById('winModal').classList.add('active');
+                                }, 400);
+                            }
+                        }
+                    }, 600);
+                }
+            }
+
+            canvas.addEventListener('mousedown', (e) => { isDrawing = true; scratch(e); });
+            canvas.addEventListener('mousemove', (e) => { if (isDrawing) scratch(e); });
+            window.addEventListener('mouseup', () => isDrawing = false);
+            canvas.addEventListener('touchstart', (e) => { isDrawing = true; scratch(e); });
+            canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if (isDrawing) scratch(e); });
+            canvas.addEventListener('touchend', () => isDrawing = false);
+        }
+
+        document.getElementById('click-trigger').addEventListener('click', function() {
+            document.getElementById('step-1-click').style.display = 'none';
+            document.getElementById('step-2-animation').style.display = 'block';
+            
+            const video = document.getElementById('opening-video');
+            
+            // Choix de la vidéo selon le mode
+            if (fleurMode) {
+                video.src = "images/ouverture-tulipe.mp4";
+            } else {
+                video.src = "images/ouverture.mp4";
+            }
+
+            video.load();
+            video.play();
+            
+            video.onended = () => {
+                const prizeOverlay = document.getElementById('prize-overlay');
+                const prizeTitle = document.getElementById('display-prize-title');
+                const prizeDesc = document.getElementById('display-prize-desc');
+
+                if (fleurMode) {
+                    prizeTitle.innerText = "SURPRISE ! 🌸";
+                    prizeTitle.style.color = "#e91e63";
+                    prizeDesc.innerText = "Tu as débloqué le bouquet secret !";
+                }
+
+                prizeOverlay.classList.add('show');
+                document.getElementById('replay-btn-ext').classList.add('show');
+                createConfetti();
+                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+            };
+        });
+
+        init();
+    </script>
+</body>
+</html>
