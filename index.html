@@ -7,112 +7,137 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
+        :root {
+            --card-size: 105px; /* Taille optimisée pour la majorité des mobiles */
+        }
+
         body {
             margin: 0; padding: 0;
             background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
             font-family: 'Poppins', sans-serif;
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
-            min-height: 100vh; overflow: hidden;
+            min-height: 100vh;
+            overflow: hidden; /* Empêche le scroll parasite sur mobile */
             color: white; text-align: center;
+            touch-action: manipulation; /* Optimise les clics sur mobile */
         }
 
-        h1 { cursor: pointer; user-select: none; transition: text-shadow 0.3s; }
+        h1 { 
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            cursor: pointer; 
+            user-select: none; 
+            text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
 
         .game-wrapper {
             background: rgba(255, 255, 255, 0.95);
-            padding: 20px; border-radius: 25px;
-            box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+            padding: 15px;
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+            border: 4px solid rgba(255, 255, 255, 0.3);
         }
 
         .grid-container {
             display: grid;
-            /* Taille augmentée à 110px */
-            grid-template-columns: repeat(3, 110px);
-            grid-template-rows: repeat(3, 110px);
-            gap: 12px;
+            grid-template-columns: repeat(3, var(--card-size));
+            grid-template-rows: repeat(3, var(--card-size));
+            gap: 10px;
         }
 
         .card {
             position: relative; 
-            width: 110px; 
-            height: 110px;
-            border-radius: 12px; 
+            width: var(--card-size); 
+            height: var(--card-size);
+            border-radius: 15px; 
             overflow: hidden;
             background: #fff; 
             display: flex;
             align-items: center; 
             justify-content: center;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
         }
 
         .card img { 
-            /* Taille de l'icône augmentée à 85% */
-            width: 85%; 
-            height: 85%; 
+            width: 80%; 
+            height: 80%; 
             object-fit: contain; 
         }
 
         canvas {
             position: absolute; top: 0; left: 0;
-            width: 100%; height: 100%; cursor: pointer;
-            touch-action: none; z-index: 2;
+            width: 100%; height: 100%; 
+            cursor: crosshair;
+            touch-action: none; /* Crucial pour le grattage sur mobile */
+            z-index: 2;
         }
 
+        /* Modale Premium */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); backdrop-filter: blur(8px);
+            background: rgba(0,0,0,0.92); backdrop-filter: blur(10px);
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
-            z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.4s;
+            z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.5s;
         }
 
         .modal.active { opacity: 1; pointer-events: all; }
 
         .modal-content {
-            background: white; border-radius: 25px;
-            width: 90%; max-width: 350px; height: 350px;
+            background: white; border-radius: 30px;
+            width: 85%; max-width: 320px; height: 320px;
             position: relative; overflow: hidden;
             display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 30px rgba(255,255,255,0.2);
         }
 
         #opening-video {
             width: 100%; height: 100%;
-            object-fit: contain; background: #000;
+            object-fit: cover; background: #000;
         }
 
         .prize-overlay-ext {
-            margin-bottom: 20px; opacity: 0; transform: translateY(-20px);
-            transition: all 0.5s ease;
+            margin-bottom: 25px; opacity: 0; transform: translateY(-20px);
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .prize-overlay-ext.show { opacity: 1; transform: translateY(0); }
 
         .prize-text-ext {
-            background: white; color: #333; padding: 15px 25px; border-radius: 20px;
+            background: white; color: #333; padding: 15px 25px; border-radius: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
 
         #replay-btn-ext {
-            margin-top: 30px; opacity: 0; transform: scale(0.5);
+            margin-top: 30px; opacity: 0; transform: scale(0.8);
             transition: all 0.5s ease;
         }
         #replay-btn-ext.show { opacity: 1; transform: scale(1); }
 
         .btn {
             background: linear-gradient(45deg, #ff416c, #ff4b2b);
-            color: white; border: none; padding: 15px 40px;
+            color: white; border: none; padding: 16px 45px;
             border-radius: 50px; font-weight: bold; cursor: pointer;
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Poppins', sans-serif; font-size: 1rem;
+            box-shadow: 0 10px 20px rgba(255, 65, 108, 0.4);
         }
 
-        .clickable-box { width: 140px; cursor: pointer; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .clickable-box { width: 130px; cursor: pointer; animation: pulse 1.2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
-        .confetti { position: fixed; width: 10px; height: 10px; pointer-events: none; z-index: 3000; }
+        .confetti { position: fixed; width: 8px; height: 8px; pointer-events: none; z-index: 3000; }
     </style>
 </head>
 <body>
 
     <h1 id="game-title">Gagne ta Saint Valentin !</h1>
-    <p class="subtitle">Trouve 3 fois une chose pour la gagner !</p>
+    <p class="subtitle">Trouve 3 icônes identiques !</p>
 
     <div class="game-wrapper">
         <div class="grid-container" id="grid"></div>
@@ -129,11 +154,11 @@
         <div class="modal-content">
             <div id="step-1-click" style="color:#333; padding: 20px;">
                 <h2 style="margin-top:0;">Bravo !</h2>
-                <p>Clique sur la boîte pour l'ouvrir</p>
+                <p>Touche la boîte pour l'ouvrir</p>
                 <img src="images/boite.png" class="clickable-box" id="click-trigger">
             </div>
             <div id="step-2-animation" style="display:none; width:100%; height:100%;">
-                <video id="opening-video" playsinline></video>
+                <video id="opening-video" playsinline webkit-playsinline></video>
             </div>
         </div>
 
@@ -161,15 +186,18 @@
         let titleClicks = 0;
 
         function init() {
+            // Mode Secret
             document.getElementById('game-title').addEventListener('click', () => {
                 titleClicks++;
                 if (titleClicks === 3) {
                     fleurMode = true;
-                    document.getElementById('game-title').style.textShadow = "0 0 10px rgba(255,255,255,0.8)";
+                    document.getElementById('game-title').style.textShadow = "0 0 15px rgba(255,255,255,1)";
+                    if (navigator.vibrate) navigator.vibrate([30, 30, 30]);
                 }
                 setTimeout(() => { titleClicks = 0; }, 1000);
             });
 
+            // Création de la grille
             const shuffled = items.sort(() => Math.random() - 0.5);
             shuffled.forEach(item => {
                 const card = document.createElement('div');
@@ -180,7 +208,9 @@
                 card.appendChild(img);
 
                 const canvas = document.createElement('canvas');
-                canvas.width = 110; canvas.height = 110;
+                // On récupère la taille exacte via CSS variable
+                const size = 105; 
+                canvas.width = size; canvas.height = size;
                 card.appendChild(canvas);
                 setupCanvas(canvas, item.type);
                 
@@ -188,51 +218,28 @@
             });
         }
 
-        function createConfetti() {
-            const colors = ['#ff416c', '#ff4b2b', '#fdbb2d', '#fff'];
-            for (let i = 0; i < 60; i++) {
-                const confetti = document.createElement('div');
-                confetti.className = 'confetti';
-                confetti.style.left = Math.random() * 100 + 'vw';
-                confetti.style.top = '-10px';
-                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                document.body.appendChild(confetti);
-                
-                const animation = confetti.animate([
-                    { transform: 'translateY(0) rotate(0)', opacity: 1 },
-                    { transform: `translateY(100vh) rotate(${Math.random() * 360}deg)`, opacity: 0 }
-                ], { 
-                    duration: 2000 + Math.random() * 2000, 
-                    easing: 'ease-out' 
-                });
-                
-                animation.onfinish = () => confetti.remove();
-            }
-        }
-
         function setupCanvas(canvas, type) {
             const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#bdc3c7';
-            ctx.fillRect(0, 0, 110, 110);
+            const size = canvas.width;
+
+            // Couche de grattage
+            ctx.fillStyle = '#cfd8dc';
+            ctx.fillRect(0, 0, size, size);
             
-            ctx.font = "bold 35px Poppins";
+            // Texture grattage (petits points pour faire plus vrai)
+            ctx.fillStyle = '#b0bec5';
+            for(let i=0; i<100; i++) {
+                ctx.fillRect(Math.random()*size, Math.random()*size, 2, 2);
+            }
+
+            ctx.font = "bold 40px Poppins";
             ctx.fillStyle = "#fff";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            ctx.fillText("?", 55, 55);
+            ctx.fillText("?", size/2, size/2);
 
             let isRevealed = false;
             let isDrawing = false;
-
-            function getScratchedPercentage() {
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const pixels = imageData.data;
-                let transparentPixels = 0;
-                for (let i = 3; i < pixels.length; i += 4) {
-                    if (pixels[i] === 0) transparentPixels++;
-                }
-                return (transparentPixels / (canvas.width * canvas.height)) * 100;
-            }
 
             function scratch(e) {
                 if (isRevealed) return;
@@ -242,36 +249,48 @@
 
                 ctx.globalCompositeOperation = 'destination-out';
                 ctx.beginPath();
-                ctx.arc(x, y, 18, 0, Math.PI * 2);
+                ctx.arc(x, y, 20, 0, Math.PI * 2);
                 ctx.fill();
 
-                if (getScratchedPercentage() >= 70) {
+                checkReveal();
+            }
+
+            function checkReveal() {
+                const imageData = ctx.getImageData(0, 0, size, size);
+                let transparent = 0;
+                for (let i = 3; i < imageData.data.length; i += 4) {
+                    if (imageData.data[i] === 0) transparent++;
+                }
+                
+                if ((transparent / (size * size)) > 0.65) {
                     isRevealed = true;
-                    canvas.style.transition = "opacity 0.6s ease-out, transform 0.6s ease-out";
+                    canvas.style.transition = "opacity 0.6s ease, transform 0.6s ease";
                     canvas.style.opacity = "0";
-                    canvas.style.transform = "scale(1.1)";
+                    canvas.style.transform = "scale(1.2)";
                     
                     setTimeout(() => {
                         canvas.remove();
                         if (type === 'win') {
                             winnersFound++;
-                            if (navigator.vibrate) navigator.vibrate(50);
-                            if (winnersFound === 3) {
-                                setTimeout(() => {
-                                    document.getElementById('winModal').classList.add('active');
-                                }, 400);
-                            }
+                            if (navigator.vibrate) navigator.vibrate(40);
+                            if (winnersFound === 3) showWin();
                         }
-                    }, 600);
+                    }, 500);
                 }
             }
 
-            canvas.addEventListener('mousedown', (e) => { isDrawing = true; scratch(e); });
-            canvas.addEventListener('mousemove', (e) => { if (isDrawing) scratch(e); });
-            window.addEventListener('mouseup', () => isDrawing = false);
+            canvas.addEventListener('mousedown', () => isDrawing = true);
+            canvas.addEventListener('mousemove', (e) => { if(isDrawing) scratch(e); });
             canvas.addEventListener('touchstart', (e) => { isDrawing = true; scratch(e); });
-            canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if (isDrawing) scratch(e); });
-            canvas.addEventListener('touchend', () => isDrawing = false);
+            canvas.addEventListener('touchmove', (e) => { e.preventDefault(); scratch(e); });
+            window.addEventListener('mouseup', () => isDrawing = false);
+            window.addEventListener('touchend', () => isDrawing = false);
+        }
+
+        function showWin() {
+            setTimeout(() => {
+                document.getElementById('winModal').classList.add('active');
+            }, 500);
         }
 
         document.getElementById('click-trigger').addEventListener('click', function() {
@@ -279,14 +298,8 @@
             document.getElementById('step-2-animation').style.display = 'block';
             
             const video = document.getElementById('opening-video');
+            video.src = fleurMode ? "images/ouverture-tulipe.mp4" : "images/ouverture.mp4";
             
-            // Choix de la vidéo selon le mode
-            if (fleurMode) {
-                video.src = "images/ouverture-tulipe.mp4";
-            } else {
-                video.src = "images/ouverture.mp4";
-            }
-
             video.load();
             video.play();
             
@@ -307,6 +320,22 @@
                 if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
             };
         });
+
+        function createConfetti() {
+            const colors = ['#ff416c', '#ff4b2b', '#fdbb2d', '#fff'];
+            for (let i = 0; i < 70; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                document.body.appendChild(confetti);
+                
+                confetti.animate([
+                    { transform: 'translateY(0) rotate(0)', opacity: 1 },
+                    { transform: `translateY(100vh) rotate(${Math.random() * 720}deg)`, opacity: 0 }
+                ], { duration: 2500, easing: 'ease-out' }).onfinish = () => confetti.remove();
+            }
+        }
 
         init();
     </script>
